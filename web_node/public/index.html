@@ -1,0 +1,278 @@
+<!-- web_node/public/index.html -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Smart Lab Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-screen bg-slate-100">
+    <div class="max-w-6xl mx-auto px-4 py-6">
+      <header class="mb-6">
+        <h1 class="text-2xl font-bold text-slate-800">
+          Smart Lab IoT Dashboard
+        </h1>
+        <p class="text-sm text-slate-500">
+          Attendance by Face + Safety Mode
+        </p>
+      </header>
+
+      <!-- Tabs -->
+      <div class="border-b border-slate-200 mb-4">
+        <nav class="-mb-px flex space-x-4">
+          <button
+            class="tab-btn border-b-2 border-indigo-500 px-3 py-2 text-sm font-medium text-indigo-600"
+            data-target="panel-attendance"
+          >
+            Attendance
+          </button>
+          <button
+            class="tab-btn border-b-2 border-transparent px-3 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 hover:border-slate-300"
+            data-target="panel-safety"
+          >
+            Safety Mode
+          </button>
+        </nav>
+      </div>
+
+      <!-- Attendance panel -->
+      <div id="panel-attendance" class="tab-panel">
+        <div
+          class="flex flex-col md:flex-row md:items-center gap-3 mb-4 justify-between"
+        >
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-medium text-slate-700">Camera</span>
+            <select
+              id="camera-select"
+              class="rounded-md border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+            ></select>
+          </div>
+
+          <button
+            id="refresh-unknown"
+            class="inline-flex items-center rounded-md bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-200"
+          >
+            Refresh Unknown Face
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="md:col-span-2">
+            <div
+              class="aspect-video bg-black/80 flex items-center justify-center rounded-xl overflow-hidden border border-slate-300"
+            >
+              <img
+                id="video"
+                alt="video stream"
+                class="w-full h-full object-contain"
+              />
+            </div>
+          </div>
+
+          <div
+            class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-col gap-3"
+          >
+            <h2 class="text-sm font-semibold text-slate-800">
+              Add New Face from Unknown
+            </h2>
+            <p
+              id="unknown-info"
+              class="text-xs text-slate-500 border border-dashed border-slate-200 rounded-md p-2 h-16 overflow-auto"
+            >
+              No unknown face yet.
+            </p>
+            <p class="text-[10px] text-slate-400">
+              หลังจากกด <span class="font-semibold">Add to Database</span> ให้ค่อย ๆ
+              หันหน้า ซ้าย–ขวา ก้ม–เงย ประมาณ 2 วินาที ระบบจะเก็บหลายรูปเพื่อให้จำได้ดีขึ้น
+            </p>
+
+            <label class="text-xs font-medium text-slate-600">
+              Name
+              <input
+                id="new-name"
+                type="text"
+                class="mt-1 block w-full rounded-md border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                placeholder="e.g. Kong"
+              />
+            </label>
+
+            <button
+              id="add-face"
+              class="mt-1 inline-flex justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+            >
+              Add to Database
+            </button>
+
+            <p class="text-[10px] text-slate-400">
+              ใช้ Unknown face ล่าสุดจากกล้อง ตัด bbox แล้วเซฟลง
+              <code>facesIMG/&lt;name&gt;</code> จากนั้น reload embeddings
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Safety panel -->
+      <div id="panel-safety" class="tab-panel hidden">
+        <div
+          class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col gap-4"
+        >
+          <div class="flex items-center gap-4">
+            <span class="text-sm font-semibold text-slate-800">Safety Mode</span>
+            <button
+              id="safety-toggle"
+              class="px-4 py-1.5 text-sm font-semibold rounded-full bg-red-500 text-white hover:bg-red-600"
+            >
+              OFF
+            </button>
+            <span
+              id="safety-status"
+              class="text-sm font-medium text-red-600"
+            >
+              Disabled
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // tabs
+      const tabButtons = document.querySelectorAll(".tab-btn");
+      const tabPanels = document.querySelectorAll(".tab-panel");
+      tabButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          tabButtons.forEach((b) =>
+            b.classList.remove("border-indigo-500", "text-indigo-600")
+          );
+          tabButtons.forEach((b) =>
+            b.classList.add("border-transparent", "text-slate-500")
+          );
+          btn.classList.add("border-indigo-500", "text-indigo-600");
+          btn.classList.remove("border-transparent", "text-slate-500");
+
+          const target = btn.dataset.target;
+          tabPanels.forEach((p) => {
+            p.classList.toggle("hidden", p.id !== target);
+          });
+        });
+      });
+
+      // cameras & video
+      const cameraSelect = document.getElementById("camera-select");
+      const videoEl = document.getElementById("video");
+      const unknownInfo = document.getElementById("unknown-info");
+      let currentCameras = [];
+      let currentUnknownBBox = null;
+
+      async function loadCameras() {
+        const res = await fetch("/api/cameras");
+        currentCameras = await res.json();
+        cameraSelect.innerHTML = "";
+        currentCameras.forEach((cam, idx) => {
+          const opt = document.createElement("option");
+          opt.value = cam.id;
+          opt.textContent = cam.name || cam.id;
+          if (idx === 0) opt.selected = true;
+          cameraSelect.appendChild(opt);
+        });
+        updateVideoSrc();
+      }
+
+      function updateVideoSrc() {
+        const camId = cameraSelect.value;
+        const cam = currentCameras.find((c) => c.id === camId);
+        if (cam) videoEl.src = cam.streamUrl;
+      }
+
+      cameraSelect.addEventListener("change", updateVideoSrc);
+
+      // unknown faces
+      async function refreshUnknown() {
+        const res = await fetch("/api/unknown_faces");
+        const faces = await res.json();
+        if (!faces.length) {
+          unknownInfo.textContent = "No unknown face yet.";
+          currentUnknownBBox = null;
+          return;
+        }
+        const last = faces[faces.length - 1];
+        currentUnknownBBox = last.bbox;
+        unknownInfo.textContent =
+          `Unknown face bbox: [${last.bbox.join(", ")}], score = ` +
+          last.score.toFixed(2);
+      }
+      document
+        .getElementById("refresh-unknown")
+        .addEventListener("click", refreshUnknown);
+
+      document.getElementById("add-face").addEventListener("click", async () => {
+        const nameInput = document.getElementById("new-name");
+        const name = nameInput.value.trim();
+        if (!name) {
+          alert("Please enter a name.");
+          return;
+        }
+        if (!currentUnknownBBox) {
+          alert("No unknown face detected. Click refresh first.");
+          return;
+        }
+        const res = await fetch("/api/add_face", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, bbox: currentUnknownBBox }),
+        });
+        const data = await res.json();
+        if (data.ok) {
+          alert("Face added for " + name);
+          nameInput.value = "";
+        } else {
+          alert("Error: " + (data.error || "unknown"));
+        }
+      });
+
+      // safety mode
+      const safetyBtn = document.getElementById("safety-toggle");
+      const safetyStatus = document.getElementById("safety-status");
+
+      function updateSafetyUI(enabled) {
+        if (enabled) {
+          safetyBtn.textContent = "ON";
+          safetyBtn.classList.remove("bg-red-500", "hover:bg-red-600");
+          safetyBtn.classList.add("bg-emerald-500", "hover:bg-emerald-600");
+          safetyStatus.textContent = "Enabled";
+          safetyStatus.classList.remove("text-red-600");
+          safetyStatus.classList.add("text-emerald-600");
+        } else {
+          safetyBtn.textContent = "OFF";
+          safetyBtn.classList.add("bg-red-500", "hover:bg-red-600");
+          safetyBtn.classList.remove("bg-emerald-500", "hover:bg-emerald-600");
+          safetyStatus.textContent = "Disabled";
+          safetyStatus.classList.add("text-red-600");
+          safetyStatus.classList.remove("text-emerald-600");
+        }
+      }
+
+      async function loadSafety() {
+        const res = await fetch("/api/safety");
+        const data = await res.json();
+        updateSafetyUI(data.enabled);
+      }
+
+      safetyBtn.addEventListener("click", async () => {
+        const enabled = safetyBtn.textContent === "OFF";
+        const res = await fetch("/api/safety", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ enabled }),
+        });
+        const data = await res.json();
+        updateSafetyUI(data.enabled);
+      });
+
+      // init
+      loadCameras();
+      refreshUnknown();
+      loadSafety();
+    </script>
+  </body>
+</html>
