@@ -5,18 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Lab Monitor</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
       body { font-family: 'Inter', sans-serif; }
-      /* Animation for LIVE dot */
-      @keyframes pulse-red {
-        0%, 100% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.5; transform: scale(1.2); }
+      
+      /* Animation: ไฟกระพริบสีแดง */
+      @keyframes pulse-red { 
+        0%, 100% { opacity: 1; transform: scale(1); } 
+        50% { opacity: 0.5; transform: scale(1.2); } 
       }
       .animate-pulse-red { animation: pulse-red 1.5s infinite; }
+      
+      /* Toggle Switch CSS */
+      .toggle-checkbox:checked { right: 0; border-color: #10B981; }
+      .toggle-checkbox:checked + .toggle-label { background-color: #10B981; }
     </style>
   </head>
-  <body class="bg-gray-50 min-h-screen text-slate-800 selection:bg-indigo-100 selection:text-indigo-700">
+  <body class="bg-gray-50 min-h-screen text-slate-800">
 
     <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -28,17 +33,16 @@
               </svg>
             </div>
             <div>
-              <h1 class="text-xl font-bold text-slate-900 tracking-tight">Smart Lab</h1>
-              <p class="text-xs text-slate-500 font-medium">IoT Monitoring System</p>
+              <h1 class="text-xl font-bold text-slate-900">Smart Lab</h1>
+              <p class="text-xs text-slate-500 font-medium">IoT Control Panel</p>
             </div>
           </div>
-
-          <div class="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full border border-gray-200">
-            <span class="relative flex h-2.5 w-2.5">
-              <span id="backend-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span id="backend-dot" class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+          <div class="flex items-center gap-2 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            <span class="text-xs font-semibold text-slate-600">Port 5001</span>
+            <span class="text-xs font-semibold text-emerald-700">Online</span>
           </div>
         </div>
       </div>
@@ -46,229 +50,201 @@
 
     <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       
-      <div class="flex space-x-2 bg-gray-200/50 p-1.5 rounded-xl w-fit mb-8 border border-gray-200 shadow-inner">
-        <button
-          class="tab-btn flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ease-in-out shadow-sm bg-white text-indigo-600"
-          data-target="panel-camera"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-          </svg>
-          Live Monitor
-        </button>
-        <button
-          class="tab-btn flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold text-slate-500 hover:text-slate-700 hover:bg-gray-100 transition-all duration-200"
-          data-target="panel-safety"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-          </svg>
-          Safety Control
-        </button>
-      </div>
-
-      <div id="panel-camera" class="tab-panel transition-opacity duration-300">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          <div class="lg:col-span-2">
-            <div class="relative w-full aspect-video bg-slate-900 rounded-2xl overflow-hidden shadow-2xl border border-slate-700 ring-4 ring-gray-100">
-              
+          <div class="lg:col-span-2 space-y-6">
+            <div class="relative w-full aspect-video bg-slate-900 rounded-2xl overflow-hidden shadow-xl border border-slate-700">
               <div class="absolute top-4 left-4 z-10 flex items-center gap-2 bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10">
-                <div class="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse-red shadow-[0_0_8px_rgba(239,68,68,0.8)]"></div>
+                <div class="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse-red"></div>
                 <span class="text-xs font-bold text-white tracking-wider">LIVE FEED</span>
               </div>
-
-              <div class="absolute top-4 right-4 z-10">
-                 <span class="text-[10px] text-gray-400 font-mono bg-black/60 px-2 py-1 rounded border border-white/10">CAM-01</span>
-              </div>
-
+              
               <img
                 src="http://localhost:5001/video_feed/cam1"
                 alt="Live Stream"
                 class="w-full h-full object-contain bg-slate-900"
                 onerror="this.style.display='none'; document.getElementById('cam-error').style.display='flex';"
               />
-
+              
               <div id="cam-error" class="hidden absolute inset-0 flex-col items-center justify-center bg-slate-900 text-white z-0">
-                <div class="bg-slate-800 p-4 rounded-full mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                  </svg>
-                </div>
-                <h3 class="text-lg font-semibold">Signal Lost</h3>
-                <p class="text-sm text-slate-400 mt-1">Check Python Backend (Port 5001)</p>
+                 <p class="text-lg font-semibold">Connecting to Camera...</p>
+                 <p class="text-sm text-slate-400 mt-2">Make sure Python Backend (Port 5001) is running</p>
               </div>
             </div>
           </div>
 
           <div class="space-y-4">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Environment</h3>
-              
-              <div class="space-y-4">
-                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                  <div class="flex items-center gap-3">
-                    <div class="bg-blue-100 p-2 rounded-lg text-blue-600">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                      </svg>
+            
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Manual Control</h3>
+                
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
+                            </svg>
+                        </div>
+                        <span class="font-medium text-slate-700">Exhaust Fan</span>
                     </div>
-                    <span class="text-sm font-medium text-slate-700">Temp</span>
-                  </div>
-                  <span class="text-lg font-bold text-slate-800">24°C</span>
+                    <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" id="toggle-fan" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-gray-300"/>
+                        <label for="toggle-fan" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                    </div>
                 </div>
 
-                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                  <div class="flex items-center gap-3">
-                    <div class="bg-orange-100 p-2 rounded-lg text-orange-600">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-orange-50 text-orange-600 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                            </svg>
+                        </div>
+                        <span class="font-medium text-slate-700">Alarm Buzzer</span>
                     </div>
-                    <span class="text-sm font-medium text-slate-700">Power</span>
-                  </div>
-                  <span class="text-lg font-bold text-slate-800 text-emerald-600">Stable</span>
+                    <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" id="toggle-buzzer" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-gray-300"/>
+                        <label for="toggle-buzzer" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                    </div>
                 </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+              <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Environment (ESP32)</h3>
+              <div class="grid grid-cols-2 gap-3">
+                  <div class="bg-blue-50 p-3 rounded-xl">
+                      <span class="text-xs text-blue-600 font-semibold">Temp</span>
+                      <div class="flex items-baseline gap-1">
+                        <span id="val-temp" class="text-xl font-bold text-slate-800">--</span>
+                        <span class="text-xs text-slate-500">°C</span>
+                      </div>
+                  </div>
+                  <div class="bg-cyan-50 p-3 rounded-xl">
+                      <span class="text-xs text-cyan-600 font-semibold">Humid</span>
+                      <div class="flex items-baseline gap-1">
+                        <span id="val-humid" class="text-xl font-bold text-slate-800">--</span>
+                        <span class="text-xs text-slate-500">%</span>
+                      </div>
+                  </div>
+              </div>
+              
+              <div id="card-flame" class="mt-3 p-3 bg-gray-50 rounded-xl border border-gray-200 flex items-center justify-between">
+                  <span class="text-sm font-medium text-slate-600">Fire Sensor</span>
+                  <span id="val-flame" class="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded">SAFE</span>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
 
-      <div id="panel-safety" class="tab-panel hidden transition-opacity duration-300">
-        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-          <div class="p-8 border-b border-gray-100">
-            <h2 class="text-2xl font-bold text-slate-800 mb-2">Safety & Automation</h2>
-            <p class="text-slate-500">Manage automatic hazard detection and responses.</p>
-          </div>
-          
-          <div class="p-8 bg-slate-50/50">
-             <div class="flex flex-col md:flex-row items-center justify-between gap-6 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-               
-               <div class="flex items-center gap-4">
-                 <div id="safety-icon-bg" class="p-4 rounded-full bg-red-100 transition-colors duration-300">
-                   <svg id="safety-icon" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-600 transition-colors duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                   </svg>
-                 </div>
-                 <div>
-                   <h3 class="text-lg font-bold text-slate-800">Master Safety Switch</h3>
-                   <p id="safety-desc" class="text-sm text-slate-500">System is currently disabled.</p>
-                 </div>
-               </div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Recent Detections</h3>
+                
+                <div id="faces-list" class="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+                    <p class="text-sm text-slate-400 text-center py-4">Loading...</p>
+                </div>
+            </div>
 
-               <button
-                 id="safety-toggle"
-                 class="group relative inline-flex items-center justify-center px-8 py-3 text-sm font-bold text-white transition-all duration-200 bg-red-500 font-lg rounded-xl hover:bg-red-600 hover:shadow-lg hover:shadow-red-500/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 w-full md:w-auto"
-               >
-                 <span id="btn-text">ENABLE SYSTEM</span>
-                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                 </svg>
-               </button>
-
-             </div>
           </div>
-        </div>
       </div>
 
     </main>
 
-    <footer class="max-w-6xl mx-auto px-4 py-6 text-center text-slate-400 text-sm">
-      &copy; 2024 Smart Lab Project. All systems nominal.
-    </footer>
-
     <script>
       const API_URL = "http://localhost:5001";
       
-      // Elements
-      const tabButtons = document.querySelectorAll(".tab-btn");
-      const tabPanels = document.querySelectorAll(".tab-panel");
-      const safetyBtn = document.getElementById("safety-toggle");
-      const btnText = document.getElementById("btn-text");
-      const safetyIconBg = document.getElementById("safety-icon-bg");
-      const safetyIcon = document.getElementById("safety-icon");
-      const safetyDesc = document.getElementById("safety-desc");
+      const fanToggle = document.getElementById('toggle-fan');
+      const buzzerToggle = document.getElementById('toggle-buzzer');
 
-      // --- Tab Switching Logic ---
-      tabButtons.forEach(btn => {
-        btn.addEventListener("click", () => {
-          // Reset styles
-          tabButtons.forEach(b => {
-             b.classList.remove("bg-white", "text-indigo-600", "shadow-sm");
-             b.classList.add("text-slate-500", "hover:bg-gray-100");
-          });
-          
-          // Active style
-          btn.classList.add("bg-white", "text-indigo-600", "shadow-sm");
-          btn.classList.remove("text-slate-500", "hover:bg-gray-100");
+      // ฟังก์ชัน 1: อัปเดตข้อมูลหน้าเว็บ (Sensor + List 5 คน)
+      async function updateDashboard() {
+          try {
+              const res = await fetch(`${API_URL}/api/dashboard_data`);
+              const data = await res.json();
 
-          // Show Panel
-          const target = btn.dataset.target;
-          tabPanels.forEach(p => p.classList.add("hidden"));
-          document.getElementById(target).classList.remove("hidden");
-        });
-      });
+              // Update Temp & Humid
+              document.getElementById('val-temp').textContent = data.temperature ? data.temperature.toFixed(1) : "--";
+              document.getElementById('val-humid').textContent = data.humidity ? data.humidity.toFixed(1) : "--";
+              
+              // Update Flame Status
+              const flameEl = document.getElementById('val-flame');
+              const flameCard = document.getElementById('card-flame');
+              if (data.flame) {
+                  flameEl.textContent = "FIRE DETECTED!";
+                  flameEl.className = "px-2 py-1 bg-red-500 text-white text-xs font-bold rounded animate-pulse";
+                  flameCard.className = "mt-3 p-3 bg-red-50 rounded-xl border border-red-300 flex items-center justify-between";
+              } else {
+                  flameEl.textContent = "SAFE";
+                  flameEl.className = "px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded";
+                  flameCard.className = "mt-3 p-3 bg-gray-50 rounded-xl border border-gray-200 flex items-center justify-between";
+              }
 
-      // --- Safety Logic & UI Updates ---
-      function updateSafetyUI(enabled) {
-        if(enabled) {
-            // ON STATE
-            safetyBtn.classList.replace("bg-red-500", "bg-emerald-500");
-            safetyBtn.classList.replace("hover:bg-red-600", "hover:bg-emerald-600");
-            safetyBtn.classList.replace("focus:ring-red-500", "focus:ring-emerald-500");
-            safetyBtn.classList.replace("hover:shadow-red-500/30", "hover:shadow-emerald-500/30");
-            
-            btnText.textContent = "SYSTEM ACTIVE";
-            safetyDesc.textContent = "Monitoring active. Hazards will trigger alarms.";
-            
-            safetyIconBg.classList.replace("bg-red-100", "bg-emerald-100");
-            safetyIcon.classList.replace("text-red-600", "text-emerald-600");
-        } else {
-            // OFF STATE
-            safetyBtn.classList.replace("bg-emerald-500", "bg-red-500");
-            safetyBtn.classList.replace("hover:bg-emerald-600", "hover:bg-red-600");
-            safetyBtn.classList.replace("focus:ring-emerald-500", "focus:ring-red-500");
-            safetyBtn.classList.replace("hover:shadow-emerald-500/30", "hover:shadow-red-500/30");
-            
-            btnText.textContent = "ENABLE SYSTEM";
-            safetyDesc.textContent = "System is currently disabled.";
+              // Update List 5 คนล่าสุด
+              const listContainer = document.getElementById('faces-list');
+              if (listContainer) {
+                  listContainer.innerHTML = ''; // เคลียร์ของเก่า
+                  
+                  if (data.recent_faces && data.recent_faces.length > 0) {
+                      data.recent_faces.forEach(face => {
+                          const item = document.createElement('div');
+                          item.className = "flex items-center gap-3 p-2 bg-slate-50 rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors";
+                          
+                          // จัดการรูปภาพ (ถ้ามี base64 ให้โชว์ ถ้าไม่มีให้โชว์ icon ?)
+                          let imgHTML = '';
+                          if (face.image) {
+                              imgHTML = `<img src="data:image/jpeg;base64,${face.image}" class="w-10 h-10 rounded-full object-cover border border-slate-200">`;
+                          } else {
+                              imgHTML = `<div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-500 font-bold text-xs">?</div>`;
+                          }
 
-            safetyIconBg.classList.replace("bg-emerald-100", "bg-red-100");
-            safetyIcon.classList.replace("text-emerald-600", "text-red-600");
-        }
+                          item.innerHTML = `
+                              ${imgHTML}
+                              <div class="flex-1 min-w-0">
+                                  <p class="text-sm font-bold text-slate-800 truncate">${face.person}</p>
+                                  <p class="text-[10px] text-slate-500">${face.time}</p>
+                              </div>
+                          `;
+                          listContainer.appendChild(item);
+                      });
+                  } else {
+                      listContainer.innerHTML = '<p class="text-sm text-slate-400 text-center py-4">No detections yet</p>';
+                  }
+              }
+
+          } catch (e) { console.error("Data Fetch Error", e); }
       }
 
-      async function toggleSafety() {
-        const isCurrentlyOff = btnText.textContent === "ENABLE SYSTEM";
-        try {
-            const res = await fetch(`${API_URL}/api/safety`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ enabled: isCurrentlyOff })
-            });
-            const data = await res.json();
-            updateSafetyUI(data.enabled);
-        } catch (e) {
-            alert("Cannot connect to Backend at " + API_URL);
-        }
+      // ฟังก์ชัน 2: ส่งคำสั่งเปิด-ปิด (Manual Control)
+      async function sendControl() {
+          const payload = {
+              fan: fanToggle.checked,
+              buzzer: buzzerToggle.checked
+          };
+          console.log("Sending Control:", payload);
+          try {
+              await fetch(`${API_URL}/api/control`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(payload)
+              });
+          } catch(e) { console.error("Control Error", e); }
       }
 
-      // Init Load
-      safetyBtn.addEventListener("click", toggleSafety);
-      
-      // Check Backend Status & Initial Safety State
-      fetch(`${API_URL}/api/safety`)
-        .then(res => res.json())
-        .then(d => {
-            updateSafetyUI(d.enabled);
-            // ถ้าเชื่อมต่อได้ ให้จุด Backend เป็นสีเขียว
-        })
-        .catch(e => {
-            console.log("Backend Offline");
-            document.getElementById('backend-ping').classList.replace('bg-emerald-400', 'bg-red-400');
-            document.getElementById('backend-dot').classList.replace('bg-emerald-500', 'bg-red-500');
-        });
+      // ฟังก์ชัน 3: โหลดสถานะปุ่มตอนเปิดเว็บครั้งแรก
+      async function loadControlStatus() {
+          try {
+              const res = await fetch(`${API_URL}/api/control`);
+              const data = await res.json();
+              if(fanToggle) fanToggle.checked = data.fan;
+              if(buzzerToggle) buzzerToggle.checked = data.buzzer;
+          } catch(e) { console.error("Load Control Error", e); }
+      }
+
+      // Event Listeners (ทำงานทันทีที่กดปุ่ม)
+      if(fanToggle) fanToggle.addEventListener('change', sendControl);
+      if(buzzerToggle) buzzerToggle.addEventListener('change', sendControl);
+
+      // เริ่มทำงาน
+      loadControlStatus();
+      setInterval(updateDashboard, 2000); // อัปเดตข้อมูลทุก 2 วินาที
+      updateDashboard(); // เรียกครั้งแรกทันที
 
     </script>
   </body>
