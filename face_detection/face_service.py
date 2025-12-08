@@ -72,7 +72,7 @@ def save_detection(faces, frame):
 
 # --- Camera Logic ---
 def open_camera():
-    ip_url = "http://192.168.1.251:5000/video_raw"
+    ip_url = "http://172.20.10.2:5000/video_raw"
     cap = cv2.VideoCapture(ip_url)
     if not cap.isOpened():
         print("[WARN] IP Camera failed, trying USB...")
